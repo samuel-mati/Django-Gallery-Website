@@ -1,0 +1,35 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<main>
+    <div class="container-fluid px-4">
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item"><a href="{% url 'admin' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Image Details</li>
+        </ol>
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-image me-1"></i>
+                        Image Details
+                    </div>
+                    <div class="card-body">
+                        <h3>{{ image.title }}</h3>
+                        <p><strong>Description:</strong> {{ image.description }}</p>
+                        <p><strong>Category:</strong> {{ image.category.name }}</p>
+                        <p><strong>Created At:</strong> {{ image.created_at }}</p>
+                        <div>
+                            <img src="{{ image.image.url }}" alt="{{ image.title }}" class="img-fluid">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'edit_image' image.id %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                        <a href="{% url 'delete_image' image.id %}" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

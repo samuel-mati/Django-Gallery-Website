@@ -1,0 +1,35 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block content %}
+<main>
+    <div class="container-fluid px-4">
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item"><a href="{% url 'admin' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Delete Image</li>
+        </ol>
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-trash me-1"></i>
+                        Delete Image
+                    </div>
+                    <div class="card-body">
+                        <p>Are you sure you want to delete the image titled "<strong>{{ image.name }}</strong>"?</p>
+                        <div>
+                            <img src="{{ image.image.url }}" alt="{{ image.title }}" class="img-fluid">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                            <a href="{% url 'image_detail' image.id %}" class="btn btn-secondary">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

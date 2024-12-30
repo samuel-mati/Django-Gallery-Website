@@ -1,0 +1,21 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}View User{% endblock %}
+
+{% block content %}
+<main>
+    <div class="container-fluid px-4">
+        <h1>User Details</h1>
+        <div class="card">
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>First Name:</strong> {{ user.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Date Joined:</strong> {{ user.date_joined|date:"Y-m-d" }}</p>
+                <a href="{% url 'edit_user' user.id %}" class="btn btn-primary">Edit User</a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

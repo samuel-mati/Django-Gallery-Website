@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Browse beautiful free images in various categories such as nature, technology, architecture, and more." />
+    <meta name="author" content="SEOTHPICS" />
+    <meta property="og:title" content="SEOTHPICS - Beautiful Free Images" />
+    <meta property="og:description" content="Discover high-quality free images across multiple categories to enhance your projects." />
+    <meta property="og:image" content="{% static 'images/seo-image.jpg' %}" />
+    <meta name="twitter:title" content="SEOTHPICS - Beautiful Free Images" />
+    <meta name="twitter:description" content="Browse stunning free images for all your needs." />
+    <meta name="twitter:image" content="{% static 'images/seo-image.jpg' %}" />
+    <meta name="robots" content="index, follow" />
+    <title>{% block title %}Beautiful Free Images{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    
+    <!-- Font Awesome -->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Style for active category link */
+        .category-nav ul li a.active {
+            background-color: #343a40; /* Darker background for active category */
+            color: white;  /* White text for active category */
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-white bg-white shadow-sm sticky-top">
+            <div class="container">
+                <!-- Logo -->
+                <a class="navbar-brand me-4" href="#">
+                    <img src="{% static 'images/samstral.jpg' %}" alt="Logo" width="30" height="24" class="me-2">
+                    <span class="brand-text">SEOTHPICS</span>
+                </a>
+                
+                <!-- Hamburger Menu for Small Screens -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <!-- Navbar Content -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <!-- Search Form -->
+                    <form class="d-flex mx-lg-auto my-3 my-lg-0 w-100 position-relative search_form" method="post">
+                        {% csrf_token %}
+                        <input class="form-control search-input me-2" type="search" name="search" placeholder="Search for free pictures" aria-label="Search">
+                        <button class="btn btn-outline-dark position-absolute" type="submit" style="right: 10px; top: 50%; transform: translateY(-50%);">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+
+                   <!-- Login Button or Username Display -->
+                   <ul class="navbar-nav ms-lg-4">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="navbar-text">{{ user.username }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-dark" href="{% url 'logout' %}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="btn btn-dark" href="{% url 'login' %}">Login</a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Category Navigation -->
+    <div class="category-nav">
+        <ul>
+            <li><a href="#" class="category-link" data-category="all" id="all-category">All</a></li>
+            {% for category in categories %}
+                <li><a href="#" class="category-link" data-category="{{ category.name }}">{{ category.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div id="alert-container">
+    </div>
+
+    <!-- Image Gallery -->
+    <div class="gallery-container" id="image-gallery">
+        {% for image in images %}
+        <div class="gallery-item">
+            <img src="{{ image.image_file.url }}" alt="{{ image.name }}" loading="lazy" class="img-fluid">
+            <div class="icons">
+                <a href="#" class="top-right like-icon" data-image-id="{{ image.id }}" id="like-{{ image.id }}"><i class="fas fa-heart"></i></a>
+                <a href="#" class="top-right share-icon"><i class="fas fa-share"></i></a>
+                <a href="{{ image.image_file.url }}" download class="download" data-image-id="{{ image.id }}" id="download-{{ image.id }}"><i class="fas fa-download"></i></a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script src="{% static 'js/scripts.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Default category is "all"
+            const defaultCategory = 'all';
+            const categoryLinks = document.querySelectorAll('.category-link');
+            const galleryContainer = document.getElementById('image-gallery');
+            
+            // Set the default active category
+            const allCategoryLink = document.querySelector('#all-category');
+            allCategoryLink.classList.add('active');  // Mark "All" as the active category
+
+            // Fetch and display images for the default category ("All")
+            fetchImages(defaultCategory);
+
+            // Category Filtering Logic
+            categoryLinks.forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    // Remove active class from all links
+                    categoryLinks.forEach(link => link.classList.remove('active'));
+
+                    // Add active class to the clicked category
+                    const category = e.target.getAttribute('data-category');
+                    e.target.classList.add('active');
+
+                    // Fetch images for the selected category
+                    fetchImages(category);
+                });
+            });
+
+            // Function to fetch and update images
+            function fetchImages(category) {
+                fetch("{% url 'filter_by_category' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ 'category': category })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            galleryContainer.innerHTML = '';  // Clear the gallery
+
+                            // Populate the gallery with filtered images
+                            data.images.forEach(image => {
+                                const imageItem = document.createElement('div');
+                                imageItem.classList.add('gallery-item');
+                                imageItem.innerHTML =`
+                                    <img src="${image.image_file}" alt="${image.name}" loading="lazy" class="img-fluid">
+                                    <div class="icons">
+                                        <a href="#" class="top-right like-icon" data-image-id="${image.id}" id="like-${image.id}"><i class="fas fa-heart"></i></a>
+                                        <a href="#" class="top-right"><i class="fas fa-share"></i></a>
+                                        <a href="${image.image_file}" download class="download" data-image-id="${image.id}" id="download-${image.id}"><i class="fas fa-download"></i></a>
+                                    </div>
+                                `;
+                                galleryContainer.appendChild(imageItem);
+                            });
+                        } else {
+                            galleryContainer.innerHTML = '<p>No images found for this category.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching images:', error);
+                    });
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+    // Get all share icons with the class 'share-icon'
+    const shareIcons = document.querySelectorAll('.share-icon');
+
+    // Iterate over each share icon
+    shareIcons.forEach((icon) => {
+        icon.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default action for the link
+
+            const imageId = icon.closest('.gallery-item').querySelector('img').getAttribute('data-image-id');  // Get the image ID
+            const imageElement = icon.closest('.gallery-item').querySelector('img');
+            const imageName = imageElement.alt;  // Image name (alt text)
+            const imageUrl = imageElement.src;   // Image URL (src)
+
+            if (navigator.share) {
+                // If Web Share API is supported
+                try {
+                    navigator.share({
+                        title: imageName,
+                        text: 'Check out this image!',
+                        url: imageUrl
+                    }).then(() => {
+                        console.log('Image shared successfully');
+                    }).catch((error) => {
+                        console.error('Error sharing image:', error);
+                    });
+                } catch (error) {
+                    console.error('Web Share API error:', error);
+                }
+            } else if (navigator.clipboard) {
+                // If Web Share API is not supported, use Clipboard API
+                try {
+                    navigator.clipboard.writeText(imageUrl).then(() => {
+                        alert('Image URL copied to clipboard!');
+                    }).catch((error) => {
+                        console.error('Error copying to clipboard:', error);
+                    });
+                } catch (error) {
+                    console.error('Clipboard API error:', error);
+                }
+            } else {
+                // Handle case where both Web Share and Clipboard API are not supported
+                alert('Your browser does not support sharing or clipboard functionality.');
+            }
+        });
+    });
+});
+
+    </script>
+</body>
+
+</html>
